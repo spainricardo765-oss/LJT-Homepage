@@ -45,6 +45,7 @@ jobs:
 
           home = text('_site/index.html')
           pubs = text('_site/publications/index.html')
+          raw_home = Path('_site/index.html').read_text()
           facts = [
               'Junteng Liu', 'first-year PhD candidate', 'HKUST NLP Group', 'Professor Junxian He',
               'Ph.D. in Computer Science', 'Hong Kong University of Science and Technology',
@@ -55,7 +56,7 @@ jobs:
               'LLM Reasoning and Reinforcement Learning',
               'Hallucination in Vision-Language Models (VLM)',
               'LLM Truthfulness and Interpretability',
-              'jliugi@connect.ust.hk', 'Vicent0205', 'junteng88716710', 'tbK9jl4AAAAJ',
+              'jliugi@connect.ust.hk', 'Vicent0205', 'junteng88716710',
           ]
           titles = [
               'SynLogic: Synthesizing Verifiable Reasoning Data at Scale for Learning Logical Reasoning and Beyond',
@@ -73,7 +74,10 @@ jobs:
                         'Paper Title Number', 'GitHub University', 'Skill 1', 'Site Map']:
               assert value not in home, value
               assert value not in pubs, value
-          print('All personal details and all six publications verified on both pages.')
+          assert 'tbK9jl4AAAAJ' in raw_home
+          assert '<a href="/LJT-Homepage/">About</a>' in raw_home
+          assert '<a href="/LJT-Homepage/publications/">Publications</a>' in raw_home
+          print('All personal details, links and all six publications verified on both pages.')
           print('--- Homepage text ---')
           print(home)
           PY
