@@ -18,8 +18,62 @@ jobs:
           ruby-version: '3.1'
           bundler-cache: true
       - name: Build with Jekyll
-        run: bundle exec jekyll build
+        run: bundle exec jekyll build --baseurl /LJT-Homepage
         env:
           JEKYLL_ENV: production
-      - name: List generated pages
-        run: find _site -name '*.html' | sort
+      - name: Check generated pages and content
+        run: |
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+
+          class Text(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.parts = []
+              def handle_data(self, data):
+                  self.parts.append(data)
+
+          def text(path):
+              p = Text()
+              p.feed(Path(path).read_text())
+              return ' '.join(' '.join(p.parts).split())
+
+          pages = {str(p.relative_to('_site')) for p in Path('_site').rglob('*.html')}
+          print('Generated HTML pages:', sorted(pages))
+          assert pages == {'404.html', 'about.html', 'about/index.html', 'index.html', 'publications/index.html'}, pages
+
+          home = text('_site/index.html')
+          pubs = text('_site/publications/index.html')
+          facts = [
+              'Junteng Liu', 'first-year PhD candidate', 'HKUST NLP Group', 'Professor Junxian He',
+              'Ph.D. in Computer Science', 'Hong Kong University of Science and Technology',
+              'B.Eng.', 'Shanghai Jiao Tong University', '2020', 'June 2024', 'Zhiyuan Honor Scholarship',
+              'Research Intern', 'MINIMAX', 'February 2025', 'Tencent WXG', 'September 2024', 'Zifei Shan',
+              'Shanghai AI Lab', 'December 2023', 'Prof. Yu Cheng',
+              'Natural Language Processing', 'Machine Learning',
+              'LLM Reasoning and Reinforcement Learning',
+              'Hallucination in Vision-Language Models (VLM)',
+              'LLM Truthfulness and Interpretability',
+              'jliugi@connect.ust.hk', 'Vicent0205', 'junteng88716710', 'tbK9jl4AAAAJ',
+          ]
+          titles = [
+              'SynLogic: Synthesizing Verifiable Reasoning Data at Scale for Learning Logical Reasoning and Beyond',
+              'On the Perception Bottleneck of VLMs for Chart Understanding',
+              'On the Universal Truthfulness Hyperplane Inside LLMs',
+              'In-Context Sharpness as Alerts: An Inner Representation Perspective for Hallucination Mitigation',
+              'C-Eval: A Multi-Level Multi-Discipline Chinese Evaluation Suite for Foundation Models',
+              'Composing Parameter-Efficient Modules with Arithmetic Operations',
+          ]
+          venues = ['arXiv', 'EMNLP 2024', 'ICML 2024', 'NeurIPS 2023']
+          for page in (home, pubs):
+              for value in facts + titles + venues:
+                  assert value in page, value
+          for value in ['Your Name', 'Short biography', 'Red Brick University', 'none@example.org',
+                        'Paper Title Number', 'GitHub University', 'Skill 1', 'Site Map']:
+              assert value not in home, value
+              assert value not in pubs, value
+          print('All personal details and all six publications verified on both pages.')
+          print('--- Homepage text ---')
+          print(home)
+          PY
